@@ -1,3 +1,11 @@
+fn minus_safe(target: u32, amount: u32) -> u32 {
+    if target >= amount {
+        target - amount
+    } else {
+        0
+    }
+}
+
 pub struct Player {
     pub health: u32,
     pub mana: Option<u32>,
@@ -5,12 +13,61 @@ pub struct Player {
 }
 
 impl Player {
+    const CAN_USE_MANA_LEVEL: u32 = 10;
+
     pub fn revive(&self) -> Option<Player> {
-        unimplemented!("Revive this player")
+        // check player is dead
+        // if player health is over than 1, return None
+        if self.is_alive() {
+            return None;
+        }
+
+        // return new player instance with health 100
+        // if player level is over than 10, with mana 100
+        // preserve level
+        let new_player = Player {
+            health: 100,
+            mana: if self.can_use_mana_level() {
+                Some(100)
+            } else {
+                None
+            },
+            level: self.level,
+        };
+        Some(new_player)
     }
 
     pub fn cast_spell(&mut self, mana_cost: u32) -> u32 {
-        unimplemented!("Cast a spell of cost {}", mana_cost)
+        match self.mana {
+            Some(mana) => {
+                if self.has_enough_mana(mana_cost) {
+                    self.mana = Some(minus_safe(mana, mana_cost))
+                } else {
+                    return 0;
+                }
+            }
+            None => {
+                self.health = minus_safe(self.health, mana_cost);
+                return 0;
+            }
+        }
+        // return damage = mana_cost * 2
+        return mana_cost * 2;
+    }
+
+    fn can_use_mana_level(&self) -> bool {
+        self.level >= Player::CAN_USE_MANA_LEVEL
+    }
+
+    fn has_enough_mana(&self, mana_cost: u32) -> bool {
+        match self.mana {
+            Some(v) => return v >= mana_cost,
+            None => return false,
+        }
+    }
+
+    fn is_alive(&self) -> bool {
+        self.health != 0
     }
 }
 
