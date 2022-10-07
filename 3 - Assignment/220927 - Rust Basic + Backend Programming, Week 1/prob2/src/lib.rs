@@ -7,11 +7,38 @@ pub enum CalculatorInput {
     Value(i32),
 }
 
+pub fn calc(a: i32, b: i32, calculator: &CalculatorInput) -> i32 {
+    return match calculator {
+        CalculatorInput::Add => a + b,
+        CalculatorInput::Divide => a / b,
+        CalculatorInput::Subtract => a - b,
+        CalculatorInput::Multiply => a * b,
+        _ => 0,
+    };
+}
+
 pub fn evaluate(inputs: &[CalculatorInput]) -> Option<i32> {
-    unimplemented!(
-		"Given the inputs: {:?}, evaluate them as though they were a Reverse Polish notation expression",
-		inputs,
-	);
+    if inputs.len() == 0 {
+        return None;
+    }
+    let mut value_stack: Vec<i32> = Vec::new();
+    for input in inputs {
+        match input {
+            CalculatorInput::Value(v) => value_stack.push(*v),
+            _ => {
+                if value_stack.len() < 2 {
+                    return None;
+                }
+                let b = value_stack.pop()?;
+                let a = value_stack.pop()?;
+                value_stack.push(calc(a, b, input));
+            }
+        }
+    }
+    if value_stack.len() == 1 {
+        return Some(value_stack.pop()?);
+    }
+    return None;
 }
 
 #[cfg(test)]
